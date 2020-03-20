@@ -1,0 +1,15 @@
+- repo: https://github.com/psf/black
+  rev: stable
+  hooks:
+    - id: black
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.4.0
+  hooks:
+    - id: detect-aws-credentials
+    - id: trailing-whitespace
+      exclude: .*\.(md)$
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+    - id: flake8
+      args: [--extend-ignore=E501]
