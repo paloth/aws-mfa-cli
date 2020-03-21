@@ -25,5 +25,5 @@ It will return the temporary credential and will write it into the aws credentia
 
 ## To do list
 
-- [] Add more error handling
-- [] Add test
+- [ ] Add more error handling
+- [ ] Add test
