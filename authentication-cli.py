@@ -71,7 +71,7 @@ def write_profile(id_profile, config, credentials):
 
 
 if __name__ == "__main__":
-    id_profile = "edf"
+    id_profile = ""
     config = configparser.ConfigParser()
     profile_list = environment_variables(config)
     create_menu(profile_list)
