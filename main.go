@@ -18,7 +18,17 @@ const (
 )
 
 func removeBadProfile(list *configparser.ConfigParser) []string {
-	return list.Sections()
+	var listProfile []string
+	for i := 0; i < len(list.Sections()); i++ {
+		f, err := list.HasOption(list.Sections()[i], "aws_access_key_id")
+		if f == true {
+			listProfile = append(listProfile, list.Sections()[i])
+		}
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	return listProfile
 }
 
 func main() {
