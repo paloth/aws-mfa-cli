@@ -91,7 +91,6 @@ func main() {
 			fmt.Println(awsErr)
 		}
 	}
-	fmt.Println(identity.Account)
 
 	tmpSession, err := svcSts.GetSessionToken(&sts.GetSessionTokenInput{
 		DurationSeconds: aws.Int64(3600),
@@ -103,5 +102,24 @@ func main() {
 			fmt.Println(awsErr)
 		}
 	}
-	fmt.Println(tmpSession)
+
+	if exists := config.HasSection(result + "-tmp"); exists {
+		config.Set(result+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
+		config.Set(result+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
+		config.Set(result+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
+		config.Set(result+"-tmp", "aws_default_region", "eu-west-1")
+	} else {
+		fmt.Println("Profile " + result + "-tmp does not exists.")
+		config.AddSection(result + "-tmp")
+		fmt.Println("Profile " + result + "-tmp has been created.")
+		config.Set(result+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
+		config.Set(result+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
+		config.Set(result+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
+		config.Set(result+"-tmp", "aws_default_region", "eu-west-1")
+	}
+	err = config.SaveWithDelimiter(home+credentialFile, "=")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("The profile " + result + "-tmp has set up and will expire at ")
 }
