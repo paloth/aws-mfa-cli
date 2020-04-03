@@ -121,5 +121,5 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("The profile " + result + "-tmp has set up and will expire at ")
+	fmt.Println("The profile " + result + "-tmp has set up and will expire at " + tmpSession.Credentials.Expiration.Format("Mon Jan 2 15:04:05"))
 }
