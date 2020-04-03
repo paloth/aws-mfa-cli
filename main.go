@@ -93,7 +93,7 @@ func main() {
 	}
 
 	tmpSession, err := svcSts.GetSessionToken(&sts.GetSessionTokenInput{
-		DurationSeconds: aws.Int64(3600),
+		DurationSeconds: aws.Int64(43200),
 		SerialNumber:    aws.String("arn:aws:iam::" + *identity.Account + ":mfa/" + username),
 		TokenCode:       aws.String(token),
 	})
