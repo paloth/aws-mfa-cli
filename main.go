@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -20,8 +21,8 @@ const (
 func removeBadProfile(list *configparser.ConfigParser) []string {
 	var listProfile []string
 	for i := 0; i < len(list.Sections()); i++ {
-		f, err := list.HasOption(list.Sections()[i], "aws_access_key_id")
-		if f == true {
+		flag, err := list.HasOption(list.Sections()[i], "aws_access_key_id")
+		if flag == true && !strings.HasSuffix(list.Sections()[i], "-tmp") {
 			listProfile = append(listProfile, list.Sections()[i])
 		}
 		if err != nil {
@@ -31,52 +32,70 @@ func removeBadProfile(list *configparser.ConfigParser) []string {
 	return listProfile
 }
 
-func main() {
-	var (
-		home        string
-		profileList []string
-	)
-
-	fmt.Println("Auth cli with mfa project")
-	home, err := os.UserHomeDir()
+func getHomeValue(h *string) {
+	var err error
+	*h, err = os.UserHomeDir()
 	if err != nil {
 		fmt.Println("Error: ", err)
 		os.Exit(2)
 	}
+}
+
+func getUserEntry(usrname *string, token *string) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for *usrname == "" {
+		fmt.Println("Enter your aws username: ")
+		scanner.Scan()
+		*usrname = scanner.Text()
+	}
+	for *token == "" {
+		fmt.Println("Enter your token: ")
+		scanner.Scan()
+		*token = scanner.Text()
+	}
+}
+
+func getProfileList(list []string, choice *string) {
+	var err error
+	prompt := promptui.Select{
+		Label: "Select profile",
+		Items: list,
+	}
+
+	_, *choice, err = prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		os.Exit(2)
+	}
+
+	fmt.Printf("You choose %q\n", *choice)
+}
+
+func main() {
+	var (
+		home        string
+		profileList []string
+		usrChoice   string
+		username    string
+		token       string
+	)
+
+	fmt.Println("Auth cli with mfa project")
+
+	getHomeValue(&home)
 
 	config, err := configparser.NewConfigParserFromFile(home + credentialFile)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		os.Exit(2)
 	}
+
 	profileList = removeBadProfile(config)
-
-	prompt := promptui.Select{
-		Label: "Select profile",
-		Items: profileList,
-	}
-
-	_, result, err := prompt.Run()
-
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	fmt.Printf("You choose %q\n", result)
-
-	scanner := bufio.NewScanner(os.Stdin)
-
-	fmt.Println("Enter your aws username: ")
-	scanner.Scan()
-	username := scanner.Text()
-
-	fmt.Println("Enter your token: ")
-	scanner.Scan()
-	token := scanner.Text()
+	getProfileList(profileList, &usrChoice)
+	getUserEntry(&username, &token)
 
 	awsSession, err := session.NewSessionWithOptions(session.Options{
-		Profile: result,
+		Profile: usrChoice,
 	})
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
@@ -103,23 +122,23 @@ func main() {
 		}
 	}
 
-	if exists := config.HasSection(result + "-tmp"); exists {
-		config.Set(result+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
-		config.Set(result+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
-		config.Set(result+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
-		config.Set(result+"-tmp", "aws_default_region", "eu-west-1")
+	if exists := config.HasSection(usrChoice + "-tmp"); exists {
+		config.Set(usrChoice+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
+		config.Set(usrChoice+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
+		config.Set(usrChoice+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
+		config.Set(usrChoice+"-tmp", "aws_default_region", "eu-west-1")
 	} else {
-		fmt.Println("Profile " + result + "-tmp does not exists.")
-		config.AddSection(result + "-tmp")
-		fmt.Println("Profile " + result + "-tmp has been created.")
-		config.Set(result+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
-		config.Set(result+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
-		config.Set(result+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
-		config.Set(result+"-tmp", "aws_default_region", "eu-west-1")
+		fmt.Println("Profile " + usrChoice + "-tmp does not exists.")
+		config.AddSection(usrChoice + "-tmp")
+		fmt.Println("Profile " + usrChoice + "-tmp has been created.")
+		config.Set(usrChoice+"-tmp", "aws_access_key_id", *tmpSession.Credentials.AccessKeyId)
+		config.Set(usrChoice+"-tmp", "aws_secret_access_key", *tmpSession.Credentials.SecretAccessKey)
+		config.Set(usrChoice+"-tmp", "aws_session_token", *tmpSession.Credentials.SessionToken)
+		config.Set(usrChoice+"-tmp", "aws_default_region", "eu-west-1")
 	}
 	err = config.SaveWithDelimiter(home+credentialFile, "=")
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("The profile " + result + "-tmp has set up and will expire at " + tmpSession.Credentials.Expiration.Format("Mon Jan 2 15:04:05"))
+	fmt.Println("The profile " + usrChoice + "-tmp has set up and will expire at " + tmpSession.Credentials.Expiration.Format("Mon Jan 2 15:04:05"))
 }
