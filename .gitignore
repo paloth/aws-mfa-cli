@@ -1,2 +1,7 @@
 **/.venv/
 **/.vscode/
+
+## Pytest
+
+**/__pycache__
+.python-version
