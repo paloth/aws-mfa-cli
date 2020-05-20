@@ -1,12 +1,24 @@
-import boto3
-from botocore.exceptions import ClientError
 import configparser
 from pathlib import Path
+
+import boto3
+from botocore.exceptions import ClientError
+
+import profileMgt
+import accessMgt
 import menu
-import configuration
-import keyManagement
+from config import logs, args
+import re
 
 AWS_PROFILE_FILE = f"{str(Path.home())}/.aws/credentials"
+
+args = args.get_args()
+
+logger = logs.get_logger(__name__)
+if logger.level == 10:
+    logger.warning(
+        "Be careful !! Logs have been set to DEBUG. Sensitive information may be displayed. Do not forget to clean log file when debug is done."
+    )
 
 
 def get_sesion_token(sts, user_name, user_token):
@@ -27,18 +39,38 @@ def get_sesion_token(sts, user_name, user_token):
 
 
 if __name__ == "__main__":
+    logger.debug(f"AWS credentials file set to: {AWS_PROFILE_FILE}")
+    logger.debug("Creating config parser")
     config = configparser.ConfigParser()
     config.read(AWS_PROFILE_FILE)
-    profile = menu.start(config)
+
+    if args.profile is not None and config.has_section(args.profile):
+        logger.debug(f"Profile args: {args.profile}")
+        profile = args.profile
+        print(f"Profile selected: {profile}")
+    else:
+        profile = menu.start(config)
+    logger.debug("Creating AWS session")
     session = boto3.session.Session(profile_name=profile)
 
-    user_name = input("Enter your AWS user name:\n")
-    user_token = input("Token:\n")
+    if args.user is None:
+        user_name = input("Enter your AWS user name:\n")
+    else:
+        user_name = args.user
+        print(f"User name:{user_name}")
+    logger.debug(f"UserName: {user_name}")
 
+    if args.token is not None and re.match(args.token, r"\d{6}"):
+        user_token = args.token
+    else:
+        user_token = input("Token:\n")
+
+    logger.debug("Getting sts client")
     sts = session.client("sts")
     credentials = get_sesion_token(sts, user_name, user_token)
-    configuration.write(AWS_PROFILE_FILE, profile, config, credentials)
+    logger.debug(f"Credentials response: {credentials}")
+    profileMgt.write(AWS_PROFILE_FILE, profile, config, credentials)
     print(
         f"Profile [{profile}-tmp] has been updated and will expire on {credentials['Credentials']['Expiration']}"
     )
-    keyManagement.check(config, user_name, profile, AWS_PROFILE_FILE)
+    accessMgt.check(config, user_name, profile, AWS_PROFILE_FILE)

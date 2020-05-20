@@ -1,5 +1,7 @@
-# import os
 import subprocess
+from config import logs
+
+logger = logs.get_logger(__name__)
 
 
 def filter_profile(config):
@@ -29,5 +31,4 @@ def start(config):
             continue
         flag = True
     print(f"You selected the profile: {profiles[int(user_selection) - 1]}")
-    # os.environ["AWS_PROFILE"] = profiles[int(user_selection) - 1]
     return profiles[int(user_selection) - 1]
