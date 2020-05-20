@@ -1,27 +1,13 @@
-from botocore.exceptions import ClientError
 from datetime import datetime, timedelta
-from dateutil.tz import tzutc
-import configuration
+
 import boto3
-import logging
+from botocore.exceptions import ClientError
+from dateutil.tz import tzutc
 
+import profileMgt
+from config import logs
 
-logger = logging.getLogger("simple_example")
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter("%(asctime)s - [%(levelname)s] - %(message)s")
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
-
+logger = logs.get_logger(__name__)
 """Access Key management"""
 
 
@@ -62,8 +48,8 @@ def check(config, user_name, profile, path):
     for key in current_keys["AccessKeyMetadata"]:
         if is_delta_greater_than_ninety_days(key["CreateDate"]):
             new_key = iam.create_access_key(UserName=user_name)
-            logging.debug(f"NewKey {new_key}")
-            if configuration.update_profile(path, profile, config, new_key):
+            logger.debug(f"NewKey {new_key}")
+            if profileMgt.update_profile(path, profile, config, new_key):
                 try:
                     iam.update_access_key(
                         UserName=user_name,

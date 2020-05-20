@@ -1,3 +1,8 @@
+from config import logs
+
+logger = logs.get_logger(__name__)
+
+
 def write(path, profile, config, credentials):
     if profile + "-tmp" not in config:
         config[f"{profile}-tmp"] = {}
