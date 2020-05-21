@@ -41,3 +41,7 @@ At the end, it will return the temporary credential and will write it into the a
 - [ ] Add a valid CI for test
 - [ ] Add test
 - [x] Add arguments management
+- [ ] Add options
+  - [ ] Generate temporary key
+  - [ ] Check and renew access key
+  - [ ] Show Profile available
