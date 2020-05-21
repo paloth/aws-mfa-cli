@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 from dateutil.tz import tzutc
 
-import profileMgt
+from . import profilemgt
 from config import logs
 import os
 
@@ -50,7 +50,7 @@ def check(config, user_name, profile, path):
         if is_delta_greater_than_ninety_days(key["CreateDate"]):
             new_key = iam.create_access_key(UserName=user_name)
             logger.debug(f"NewKey {new_key}")
-            if profileMgt.update_profile(path, profile, config, new_key):
+            if profilemgt.update_profile(path, profile, config, new_key):
                 try:
                     iam.update_access_key(
                         UserName=user_name,

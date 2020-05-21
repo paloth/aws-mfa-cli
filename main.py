@@ -3,9 +3,7 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
-
-import profileMgt
-import accessMgt
+from src import keymgt, profilemgt
 import menu
 from config import logs, args
 import re
@@ -73,8 +71,8 @@ if __name__ == "__main__":
     sts = session.client("sts")
     credentials = get_sesion_token(sts, user_name, user_token)
     logger.debug(f"Credentials response: {credentials}")
-    profileMgt.write(AWS_PROFILE_FILE, profile, config, credentials)
+    profilemgt.write(AWS_PROFILE_FILE, profile, config, credentials)
     print(
         f"Profile [{profile}-tmp] has been updated and will expire on {credentials['Credentials']['Expiration']}"
     )
-    accessMgt.check(config, user_name, profile, AWS_PROFILE_FILE)
+    keymgt.check(config, user_name, profile, AWS_PROFILE_FILE)
