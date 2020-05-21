@@ -6,8 +6,9 @@ from dateutil.tz import tzutc
 
 import profileMgt
 from config import logs
+import os
 
-logger = logs.get_logger(__name__)
+logger = logs.get_logger(__name__, os.getenv("LOGS_LVL", "20"))
 """Access Key management"""
 
 

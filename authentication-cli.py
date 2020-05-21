@@ -9,15 +9,19 @@ import accessMgt
 import menu
 from config import logs, args
 import re
+import os
 
 AWS_PROFILE_FILE = f"{str(Path.home())}/.aws/credentials"
 
 args = args.get_args()
 
-logger = logs.get_logger(__name__)
-if logger.level == 10:
+if args.debug:
+    os.environ["LOGS_LVL"] = "10"
+
+logger = logs.get_logger(__name__, os.getenv("LOGS_LVL", "20"))
+if os.environ.get("LOGS_LVL") is not None:
     logger.warning(
-        "Be careful !! Logs have been set to DEBUG. Sensitive information may be displayed. Do not forget to clean log file when debug is done."
+        "Be careful !! Logs have been set to DEBUG. Sensitive information may be displayed."
     )
 
 
@@ -25,7 +29,7 @@ def get_sesion_token(sts, user_name, user_token):
     try:
         identity_response = sts.get_caller_identity()
     except ClientError as error:
-        print(f"{error}")
+        logger.error(f"{error}")
         raise error
     try:
         response = sts.get_session_token(
@@ -33,7 +37,7 @@ def get_sesion_token(sts, user_name, user_token):
             TokenCode=user_token,
         )
     except ClientError as error:
-        print(f"{error}")
+        logger.error(f"{error}")
         raise error
     return response
 
