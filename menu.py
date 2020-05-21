@@ -1,7 +1,4 @@
 import subprocess
-from config import logs
-
-logger = logs.get_logger(__name__)
 
 
 def filter_profile(config):
