@@ -1,3 +1,12 @@
+import configparser
+
+
+def get(profile_path):
+    config = configparser.ConfigParser()
+    config.read(profile_path)
+    return config
+
+
 def write(path, profile, config, credentials):
     if profile + "-tmp" not in config:
         config[f"{profile}-tmp"] = {}
@@ -13,7 +22,6 @@ def write(path, profile, config, credentials):
     config[f"{profile}-tmp"]["aws_default_region"] = "eu-west-1"
     with open(path, "w") as configfile:
         config.write(configfile)
-    return True
 
 
 def update_profile(path, profile, config, key):
@@ -22,4 +30,3 @@ def update_profile(path, profile, config, key):
     config[profile]["aws_default_region"] = "eu-west-1"
     with open(path, "w") as configfile:
         config.write(configfile)
-    return True

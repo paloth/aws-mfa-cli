@@ -10,7 +10,7 @@ def filter_profile(config):
     ]
 
 
-def start(config):
+def prompt(config):
     flag = False
     profiles = filter_profile(config)
     while flag is False:

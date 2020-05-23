@@ -2,10 +2,36 @@
 
 ## Project
 
-I know there is a planty tools to do the aws cli authentication with MFA that exist, but i wanted to try to code that.
-The tools read the aws credentials file (if exist) and return a list of your differents profile available.
+The project will be completly refactored.
+I will build a CLI with the click library.
 
-You can chose your profile and then enter your aws username and your token code.
+I will add new option:
+
+- generate
+  - it will generate a temporary token for your user on aws
+  - options:
+    - user name
+    - token
+      - Must match regex: /d{6}
+    - profile
+      - Must be in the user aws credentials file
+      - use default profile if it exists
+- check
+  - it will check the user current access key and warn if the access key is too old
+  - options:
+    - user name
+    - profile
+      - Must be in the user aws credentials file
+      - use default profile if it exists
+- rotate
+  - to rotate the user current access key
+  - options:
+    - user name
+    - profile
+      - Must be in the user aws credentials file
+      - use default profile if it exists
+
+If the user did not set the profile option, the profile list  will be prompted and he will be able to chose his profile in the list
 
 ```text
 [1] - profile 1
